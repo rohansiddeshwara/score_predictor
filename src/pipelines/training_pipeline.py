@@ -4,17 +4,19 @@ import os
 import sys
 
 from dataclasses import dataclass
+
 from src.logger import logging
 from src.exception import CustomException
 
 from src.components.data_ingestion import DataIngestion
 from src.components.data_transformation import DataTransformation
-
+from src.components.model_tranier import ModelTrainer
 
 class TraningPipeline:
     def __init__(self):
         self.data_ingestion  = DataIngestion()
         self.data_transformation = DataTransformation()
+        self.trainer = ModelTrainer()
         self.target_column = "math_score"
         self.raw_data_path = os.path.join("artifacts", 'raw_data.csv')
         
@@ -27,8 +29,11 @@ class TraningPipeline:
 
             logging.info("Data Preparation Completed")
 
-            print(train_array.shape)
-            print(test_array.shape)
+            logging.info("Model Training Started")
+            r2_score = self.trainer.initiate_model_trainer(train_array,test_array)
+            logging.info("Model Training Completed")
+
+            logging.info(f"R2 Score: {r2_score}")
 
         except Exception as e:
             logging.error(f"Data Preparation Failed: {e}")

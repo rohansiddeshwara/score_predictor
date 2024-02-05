@@ -4,4 +4,8 @@ matplotlib
 seaborn
 scikit-learn
 Pyarrow
+catboost
+dvc
+xgboost
+dvc-gdrive
 -e .
