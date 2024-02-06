@@ -11,11 +11,13 @@ from sklearn.ensemble import (
     GradientBoostingRegressor,
     RandomForestRegressor,
 )
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression,ElasticNet,SGDRegressor
 from sklearn.metrics import r2_score
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import GradientBoostingRegressor
 from xgboost import XGBRegressor
+from src.components.model_monitering import mlflow_logging
 
 from src.exception import CustomException
 from src.logger import logging
@@ -53,6 +55,10 @@ class ModelTrainer:
                 "XGBRegressor": XGBRegressor(),
                 "CatBoosting Regressor": CatBoostRegressor(verbose=False),
                 "AdaBoost Regressor": AdaBoostRegressor(),
+                "ElasticNet": ElasticNet(),
+                "SGDRegressor": SGDRegressor(),
+                "KNeighborsRegressor": KNeighborsRegressor()
+                
             }
             params={
                 "Decision Tree": {
@@ -74,7 +80,31 @@ class ModelTrainer:
                     # 'max_features':['auto','sqrt','log2'],
                     'n_estimators': [8,16,32,64,128,256]
                 },
-                "Linear Regression":{},
+                "Linear Regression":{
+                },
+                "SGDRegressor":{
+                    'loss' : ['squared_error', 'huber', 'absolute_error', 'quantile'],
+                    'penalty' : ['l2', 'l1', 'elasticnet'],
+                    'alpha' : [0.0001, 0.001, 0.01, 0.1, 1, 10, 100],
+                    'learning_rate' : ['constant', 'optimal', 'invscaling', 'adaptive'],
+                    'eta0' : [0.01, 0.1, 0.5, 1, 10],
+                    'max_iter' : [1000, 5000, 10000, 50000, 100000],
+                    'tol' : [0.0001, 0.001, 0.01, 0.1, 1, 10, 100]
+                },
+                "GradientBoostingRegressor":{
+                    "loss" : ["squared_error", "absolute_error", "huber", "quantile"],
+                    'learning_rate':[.1,.01,.05,.001],
+                    'subsample':[0.6,0.7,0.75,0.8,0.85,0.9],
+                    'n_estimators': [8,16,32,64,128,256]
+                },
+                "KNeighborsRegressor":{
+                    'n_neighbors':[3,5,7,9,11],
+                    'weights':['uniform','distance']
+                },
+                "ElasticNet":{
+                    'alpha':[0.1,0.5,1,2,5],
+                    'l1_ratio':[0.1,0.25,0.5,0.75,1]
+                },
                 "XGBRegressor":{
                     'learning_rate':[.1,.01,.05,.001],
                     'n_estimators': [8,16,32,64,128,256]
@@ -117,7 +147,12 @@ class ModelTrainer:
                 obj=best_model
             )
 
-            return r2
+            predicted=best_model.predict(X_test)
+
+            mlflow_logging(best_model, best_model.get_params(), X_test, y_test, best_model_name)
+
+            r2_square = r2_score(y_test, predicted)
+            return r2_square
 
 
 

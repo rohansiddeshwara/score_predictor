@@ -1,5 +1,10 @@
 from flask import Flask
-from flask-cors import CORS
+from flask
+from flask_cors import CORS
+
+
+from src.pipelines.training_pipeline import TraningPipeline 
+
 
 from src.logger import logging
 from src.exception import CustomException
@@ -13,6 +18,18 @@ def hello_world():
     try:
         logging.info("Hello World")
         return "Hello, World!"
+    except CustomException as e:
+        logging.error(e)
+        return "Error occured"
+    
+
+@app.route("/train")
+def train():
+    try:
+        logging.info("Training Started")
+        traning_pipeline = TraningPipeline()
+        traning_pipeline.initiate_traning()
+        return "Training Started"
     except CustomException as e:
         logging.error(e)
         return "Error occured"
